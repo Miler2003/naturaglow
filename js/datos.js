@@ -1,7 +1,7 @@
 /* ==========================================================================
-   NaturaGlow — Capa de datos
-   Unico archivo que habla con la VM de aplicacion (Apache + PHP).
-   Si BD_ACTIVA es false, usa los datos de muestra del final del archivo.
+  NaturaGlow — Capa de datos
+  Unico archivo que habla con la VM de aplicacion (Apache + PHP).
+  Si BD_ACTIVA es false, usa los datos de muestra del final del archivo.
    ========================================================================== */
 
 const API = {
@@ -11,7 +11,7 @@ const API = {
 
   /* true  = todo sale de MySQL a traves de los .php
      false = datos de muestra guardados en el navegador (sin VM) */
-  BD_ACTIVA: true,
+  BD_ACTIVA: false,
 
 
   /* ---------- El token de la sesion ----------
@@ -102,29 +102,106 @@ const API = {
     if (!this.BD_ACTIVA) return Almacen.eliminar(id);
     return this.pedir("producto_eliminar.php", "POST", { id: id });
   },
-
-
   /* ---------- Cuentas y sesion ---------- */
 
+  /* Cuentas del personal SOLO para el modo sin servidor (BD_ACTIVA false).
+    Con la base conectada estas NO se usan: las de verdad viven en la
+     tabla personal de MySQL.                                          */
+  PERSONAL_LOCAL: [
+    { correo: "admin@naturaglow.pe",    clave: "admin2026",    nombre: "Lucia Paredes", rol: "admin" },
+    { correo: "empleado@naturaglow.pe", clave: "empleado2026", nombre: "Diego Rojas",   rol: "empleado" },
+    { correo: "miler123@gmail.com",  clave: "123456",  nombre: "Miler Rodriguez",  rol: "cliente" }
+  ],
+
+  /* Las clientas creadas sin servidor se guardan en el navegador */
+  clientesLocales() {
+    var texto = localStorage.getItem("ng_clientes");
+    if (texto === null) {
+      return [];
+    }
+    return JSON.parse(texto);
+  },
+
+
   async registrar(datos) {
+    if (!this.BD_ACTIVA) {
+      var lista = this.clientesLocales();
+
+      for (var i = 0; i < lista.length; i++) {
+        if (lista[i].correo === datos.correo) {
+          throw new Error("Ya existe una cuenta con ese correo");
+        }
+      }
+
+      lista.push({
+        correo: datos.correo,
+        clave:  datos.clave,
+        nombre: (datos.nombre + " " + datos.apellido).trim(),
+        rol:    "cliente"
+      });
+      localStorage.setItem("ng_clientes", JSON.stringify(lista));
+      return { ok: true, rol: "cliente" };
+    }
+
     return this.pedir("registro.php", "POST", datos);
   },
 
+
   async entrar(correo, clave) {
+    if (!this.BD_ACTIVA) {
+      correo = correo.trim().toLowerCase();
+
+      // 1. el personal
+      for (var i = 0; i < this.PERSONAL_LOCAL.length; i++) {
+        var p = this.PERSONAL_LOCAL[i];
+        if (p.correo === correo && p.clave === clave) {
+          var s = { nombre: p.nombre, rol: p.rol, correo: p.correo };
+          localStorage.setItem("ng_sesion_local", JSON.stringify(s));
+          return s;
+        }
+      }
+
+      // 2. las clientas guardadas en el navegador
+      var lista = this.clientesLocales();
+      for (var j = 0; j < lista.length; j++) {
+        if (lista[j].correo === correo && lista[j].clave === clave) {
+          var c = { nombre: lista[j].nombre, rol: "cliente", correo: correo };
+          localStorage.setItem("ng_sesion_local", JSON.stringify(c));
+          return c;
+        }
+      }
+
+      throw new Error("Correo o contraseña incorrectos");
+    }
+
     var r = await this.pedir("sesion_iniciar.php", "POST",
-                             { correo: correo, clave: clave });
+                            { correo: correo, clave: clave });
     this.guardarToken(r.token);
     return r;
   },
 
+
   async salir() {
+    if (!this.BD_ACTIVA) {
+      localStorage.removeItem("ng_sesion_local");
+      return;
+    }
     try { await this.pedir("sesion_cerrar.php", "POST", {}); }
     catch (e) { /* si el token ya vencio, da igual */ }
     this.guardarToken(null);
   },
 
+
   /* Le pregunta al servidor quien soy. null si el token vencio. */
   async quienSoy() {
+    if (!this.BD_ACTIVA) {
+      var texto = localStorage.getItem("ng_sesion_local");
+      if (texto === null) {
+        return null;
+      }
+      return JSON.parse(texto);
+    }
+
     if (this.token() === null) return null;
     try { return await this.pedir("sesion_actual.php", "GET"); }
     catch (e) { return null; }
@@ -133,9 +210,9 @@ const API = {
 
 
 /* ==========================================================================
-   Almacen: hace de "base de datos" mientras no haya MySQL conectado.
-   Guarda la lista de productos en el navegador para que lo que el
-   administrador cambie en panel.html se vea de verdad en el catalogo.
+  Almacen: hace de "base de datos" mientras no haya MySQL conectado.
+  Guarda la lista de productos en el navegador para que lo que el
+  administrador cambie en panel.html se vea de verdad en el catalogo.
    ========================================================================== */
 
 const Almacen = {
