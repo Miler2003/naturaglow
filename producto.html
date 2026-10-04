@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NaturaGlow - Producto</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+<!-- ===== Encabezado ===== -->
+<div class="cabecera" id="cabecera">
+  <div class="contenedor cabecera-fila">
+    <a href="inicio.html" class="marca">NaturaGlow</a>
+    <ul class="menu">
+      <li><a href="inicio.html">Inicio</a></li>
+      <li><a href="catalogo.html" class="activo">Tienda</a></li>
+      <li><a href="inicio.html#historia">Nosotras</a></li>
+    </ul>
+    <div class="menu-derecha">
+      <a href="index.html" id="cuenta">Entrar</a>
+      <a href="carrito.html">Carrito <span class="contador" id="contador">0</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Ficha del producto ===== -->
+<div class="seccion-clara">
+  <div class="contenedor">
+    <div class="ficha" id="ficha"></div>
+  </div>
+</div>
+
+<!-- ===== También te puede gustar ===== -->
+<div class="seccion seccion-clara" style="padding-top:0;">
+  <div class="contenedor">
+    <span class="etiqueta-oscura">También te puede gustar</span>
+    <h2 style="font-size:36px; margin-bottom:30px;">De la misma familia</h2>
+    <div class="rejilla-3" id="relacionados"></div>
+  </div>
+</div>
+
+<!-- ===== Pie ===== -->
+<div class="pie">
+  <div class="contenedor">
+    <div class="pie-bajo">
+      <span>&copy; 2026 NaturaGlow &middot; Universidad Peruana de Ciencias Aplicadas</span>
+      <span>Capa de presentación &middot; Sistemas Operativos 1ASI0726</span>
+    </div>
+  </div>
+</div>
+
+<div class="brindis" id="brindis"></div>
+
+<script src="js/datos.js"></script>
+<script src="js/sesion.js"></script>
+<script src="js/tienda.js"></script>
+<script>
+var productoActual = null;
+
+// Sube o baja la cantidad
+function subir() {
+  var caja = document.getElementById("cantidad");
+  caja.value = parseInt(caja.value) + 1;
+}
+
+function bajar() {
+  var caja = document.getElementById("cantidad");
+  if (parseInt(caja.value) > 1) {
+    caja.value = parseInt(caja.value) - 1;
+  }
+}
+
+// Anade al carrito la cantidad escrita
+function anadir() {
+  var cuantos = parseInt(document.getElementById("cantidad").value);
+  agregarAlCarrito(productoActual, cuantos);
+  avisar(cuantos + " x " + productoActual.nombre + " añadido al carrito");
+}
+
+// Dibuja la ficha
+function pintarFicha(p) {
+  var html = "";
+
+  html += '<div class="ficha-imagen">' + htmlImagen(p) + '</div>';
+
+  html += '<div class="ficha-datos">';
+  html +=   '<span class="etiqueta-oscura">' + nombreCategoria(CATEGORIAS, p.categoria) + '</span>';
+  html +=   '<h1>' + p.nombre + '</h1>';
+  html +=   '<p class="ficha-descripcion">' + p.descripcion + '</p>';
+  html +=   '<div class="ficha-precio">S/ ' + p.precio.toFixed(2) + '</div>';
+
+  html +=   '<ul class="ficha-lista">';
+  if (p.organico === true) {
+    html +=   '<li>100% orgánico certificado</li>';
+  }
+  html +=     '<li>Libre de crueldad animal</li>';
+  html +=     '<li>Dermatológicamente probado</li>';
+  html +=     '<li>Envase de vidrio retornable</li>';
+  html +=   '</ul>';
+
+  html +=   '<div class="cantidad">';
+  html +=     '<span>Cantidad</span>';
+  html +=     '<button onclick="bajar()">-</button>';
+  html +=     '<input type="text" id="cantidad" value="1" readonly>';
+  html +=     '<button onclick="subir()">+</button>';
+  html +=   '</div>';
+
+  html +=   '<button class="boton boton-verde boton-ancho" onclick="anadir()">Añadir al carrito</button>';
+  html +=   '<p class="stock-aviso">Quedan ' + p.stock + ' unidades en almacén.</p>';
+  html += '</div>';
+
+  document.getElementById("ficha").innerHTML = html;
+}
+
+// Dibuja tres productos de la misma categoria
+function pintarRelacionados(p) {
+  var html = "";
+  var puestos = 0;
+
+  for (var i = 0; i < PRODUCTOS.length; i++) {
+    if (PRODUCTOS[i].categoria === p.categoria && PRODUCTOS[i].id !== p.id && puestos < 3) {
+      html = html + htmlTarjeta(PRODUCTOS[i], CATEGORIAS);
+      puestos = puestos + 1;
+    }
+  }
+
+  // Si la categoria tiene pocos, completar con otros
+  for (var j = 0; j < PRODUCTOS.length; j++) {
+    if (puestos < 3 && PRODUCTOS[j].id !== p.id && PRODUCTOS[j].categoria !== p.categoria) {
+      html = html + htmlTarjeta(PRODUCTOS[j], CATEGORIAS);
+      puestos = puestos + 1;
+    }
+  }
+
+  document.getElementById("relacionados").innerHTML = html;
+}
+
+window.onload = function () {
+  pintarContador();
+  salidaSuave();
+  pintarSesion();
+  vigilarCabecera();
+
+  var id = parseInt(valorDeLaUrl("id"));
+  if (!id) {
+    id = 1;
+  }
+
+  API.productos().then(function (p) {
+    PRODUCTOS = p;
+    return API.categorias();
+  }).then(function (c) {
+    CATEGORIAS = c;
+    productoActual = buscarProducto(PRODUCTOS, id);
+
+    if (productoActual === null) {
+      document.getElementById("ficha").innerHTML =
+        '<p style="padding:60px 0">Ese producto no existe. <a href="catalogo.html" class="enlace-suave">Volver a la tienda</a></p>';
+      return;
+    }
+
+    document.title = "NaturaGlow - " + productoActual.nombre;
+    pintarFicha(productoActual);
+    pintarRelacionados(productoActual);
+
+  }).catch(function (e) {
+    document.getElementById("ficha").innerHTML =
+      '<p style="padding:60px 0; color:#8E3C2C">' + e.message + '</p>';
+  });
+};
+</script>
+</body>
+</html>
