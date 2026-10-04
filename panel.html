@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NaturaGlow - Panel</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+<!-- ===== Barra del panel (distinta a la de la tienda) ===== -->
+<div class="panel-barra">
+  <div class="contenedor panel-barra-fila">
+
+    <div class="panel-quien">
+      <div class="panel-inicial" id="inicial">?</div>
+      <div>
+        <div class="panel-nombre" id="nombre-personal">...</div>
+        <div class="panel-rol" id="rol-personal">...</div>
+      </div>
+    </div>
+
+    <div class="menu-derecha">
+      <a href="inicio.html">Ver la tienda</a>
+      <a href="#" onclick="cerrar(); return false;">Cerrar sesión</a>
+    </div>
+
+  </div>
+</div>
+
+<!-- ===== Contenido ===== -->
+<div class="seccion-clara" style="min-height:80vh; padding-bottom:70px">
+  <div class="contenedor">
+
+    <div style="padding-top:40px">
+      <span class="etiqueta-oscura">Gestión de productos</span>
+      <h2 style="font-size:42px">Inventario de NaturaGlow</h2>
+    </div>
+
+    <!-- Las cuatro cifras de arriba -->
+    <div class="tarjetas-dato" id="tarjetas-dato"></div>
+
+    <!-- Botones de la tabla -->
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:18px">
+      <div id="conteo-tabla" style="color:#6B7A64; font-size:13px"></div>
+      <div>
+        <button class="boton boton-verde" onclick="abrirNuevo()">Nuevo producto</button>
+      </div>
+    </div>
+
+    <!-- La tabla -->
+    <table class="tabla">
+      <thead>
+        <tr>
+          <th></th>
+          <th>Producto</th>
+          <th>Categoría</th>
+          <th>Precio</th>
+          <th>Stock</th>
+          <th>Orgánico</th>
+          <th style="text-align:right">Acciones</th>
+        </tr>
+      </thead>
+      <tbody id="cuerpo-tabla"></tbody>
+    </table>
+
+    <p style="margin-top:18px; color:#6B7A64; font-size:12px; line-height:1.7">
+      Los cambios se guardan en el navegador y se ven de inmediato en el catálogo.
+      Cuando la base de datos esté conectada, cada acción de esta tabla será un
+      INSERT, UPDATE o DELETE sobre la tabla <strong>productos</strong> de naturaglow_db.
+    </p>
+
+  </div>
+</div>
+
+<!-- ===== Ventana del formulario (crear / editar) ===== -->
+<div class="ventana" id="ventana">
+  <div class="ventana-caja">
+    <h3 id="titulo-ventana">Nuevo producto</h3>
+
+    <div class="campos">
+      <div class="campo campo-ancho" id="caja-f-nombre">
+        <label for="f-nombre">Nombre</label>
+        <input type="text" id="f-nombre" placeholder="Crema facial de aloe vera">
+        <span class="mensaje-error" id="error-f-nombre"></span>
+      </div>
+
+      <div class="campo campo-ancho" id="caja-f-descripcion">
+        <label for="f-descripcion">Descripción</label>
+        <input type="text" id="f-descripcion" placeholder="Hidratación profunda">
+        <span class="mensaje-error" id="error-f-descripcion"></span>
+      </div>
+
+      <div class="campo" id="caja-f-categoria">
+        <label for="f-categoria">Categoría</label>
+        <select id="f-categoria"></select>
+        <span class="mensaje-error" id="error-f-categoria"></span>
+      </div>
+
+      <div class="campo" id="caja-f-envase">
+        <label for="f-envase">Envase</label>
+        <select id="f-envase">
+          <option value="botella">Botella</option>
+          <option value="gotero">Gotero</option>
+          <option value="tarro">Tarro</option>
+          <option value="tubo">Tubo</option>
+          <option value="pastilla">Pastilla</option>
+          <option value="difusor">Difusor</option>
+        </select>
+        <span class="mensaje-error" id="error-f-envase"></span>
+      </div>
+
+      <div class="campo" id="caja-f-precio">
+        <label for="f-precio">Precio (S/)</label>
+        <input type="text" id="f-precio" placeholder="45.90">
+        <span class="mensaje-error" id="error-f-precio"></span>
+      </div>
+
+      <div class="campo" id="caja-f-stock">
+        <label for="f-stock">Stock</label>
+        <input type="text" id="f-stock" placeholder="30">
+        <span class="mensaje-error" id="error-f-stock"></span>
+      </div>
+
+      <div class="campo" id="caja-f-organico">
+        <label for="f-organico">¿Es orgánico?</label>
+        <select id="f-organico">
+          <option value="si">Sí</option>
+          <option value="no">No</option>
+        </select>
+        <span class="mensaje-error" id="error-f-organico"></span>
+      </div>
+
+      <div class="campo" id="caja-f-insignia">
+        <label for="f-insignia">Insignia (opcional)</label>
+        <input type="text" id="f-insignia" placeholder="Nuevo">
+        <span class="mensaje-error" id="error-f-insignia"></span>
+      </div>
+
+      <div class="campo campo-ancho" id="caja-f-imagen">
+        <label for="f-imagen">Ruta de la foto</label>
+        <input type="text" id="f-imagen" placeholder="img/productos/11.jpg">
+        <span class="mensaje-error" id="error-f-imagen"></span>
+      </div>
+    </div>
+
+    <div class="ventana-botones">
+      <button class="boton" style="color:#3A4A34" onclick="cerrarVentana()">Cancelar</button>
+      <button class="boton boton-verde" onclick="guardar()">Guardar</button>
+    </div>
+  </div>
+</div>
+
+<div class="brindis" id="brindis"></div>
+
+<script src="js/datos.js"></script>
+<script src="js/sesion.js"></script>
+<script src="js/tienda.js"></script>
+<script>
+var EDITANDO = 0;   // 0 = estamos creando uno nuevo
+
+
+/* ====== 1. Solo entra el personal ====== */
+
+async function revisarPermiso() {
+  // Le preguntamos AL SERVIDOR quien es. No basta con lo que diga
+  // el navegador: ahi cualquiera puede escribir rol="admin".
+  var s = await Sesion.verificar();
+
+  if (s === null || (s.rol !== "admin" && s.rol !== "empleado")) {
+    window.location.href = "index.html";
+    return false;
+  }
+
+  document.getElementById("inicial").innerHTML        = s.nombre.charAt(0);
+  document.getElementById("nombre-personal").innerHTML = s.nombre;
+  document.getElementById("rol-personal").innerHTML    = s.rol;
+  return true;
+}
+
+async function cerrar() {
+  await Sesion.salir();
+  window.location.href = "index.html";
+}
+
+
+/* ====== 2. Las cuatro cifras de arriba ====== */
+
+function pintarDatos() {
+  var totalProductos = PRODUCTOS.length;
+  var totalStock = 0;
+  var valor = 0;
+  var agotados = 0;
+
+  for (var i = 0; i < PRODUCTOS.length; i++) {
+    totalStock = totalStock + PRODUCTOS[i].stock;
+    valor = valor + (PRODUCTOS[i].precio * PRODUCTOS[i].stock);
+    if (PRODUCTOS[i].stock === 0) {
+      agotados = agotados + 1;
+    }
+  }
+
+  var html = "";
+  html += '<div class="dato"><span>Productos</span><strong>' + totalProductos + '</strong></div>';
+  html += '<div class="dato"><span>Unidades en stock</span><strong>' + totalStock + '</strong></div>';
+  html += '<div class="dato"><span>Valor del inventario</span><strong>S/ ' + valor.toFixed(0) + '</strong></div>';
+  html += '<div class="dato"><span>Sin stock</span><strong>' + agotados + '</strong></div>';
+
+  document.getElementById("tarjetas-dato").innerHTML = html;
+}
+
+
+/* ====== 3. La tabla ====== */
+
+function pintarTabla() {
+  var html = "";
+
+  for (var i = 0; i < PRODUCTOS.length; i++) {
+    var p = PRODUCTOS[i];
+
+    // Color de la etiqueta de stock
+    var clase = "stock-bien";
+    if (p.stock === 0) {
+      clase = "stock-cero";
+    } else if (p.stock < 15) {
+      clase = "stock-poco";
+    }
+
+    // El boton esta activo para los dos roles a proposito: si lo toca un
+    // empleado, MySQL niega el DELETE y vemos el ERROR 1142 en pantalla.
+    var botonBorrar = '<button class="boton-mini boton-mini-rojo" onclick="borrar('
+                    + p.id + ')">Eliminar</button>';
+
+    html += '<tr>';
+    html +=   '<td><div class="mini-env">' + htmlImagen(p) + '</div></td>';
+    html +=   '<td><strong>' + p.nombre + '</strong><br><span style="color:#6B7A64; font-size:12px">' + p.descripcion + '</span></td>';
+    html +=   '<td>' + nombreCategoria(CATEGORIAS, p.categoria) + '</td>';
+    html +=   '<td>S/ ' + p.precio.toFixed(2) + '</td>';
+    html +=   '<td><span class="etiqueta-stock ' + clase + '">' + p.stock + '</span></td>';
+    html +=   '<td>' + (p.organico ? 'Sí' : 'No') + '</td>';
+    html +=   '<td style="text-align:right; white-space:nowrap">';
+    html +=     '<button class="boton-mini" onclick="abrirEditar(' + p.id + ')">Editar</button>';
+    html +=     botonBorrar;
+    html +=   '</td>';
+    html += '</tr>';
+  }
+
+  document.getElementById("cuerpo-tabla").innerHTML = html;
+  document.getElementById("conteo-tabla").innerHTML = PRODUCTOS.length + " productos en la tabla";
+}
+
+/* Vuelve a leer y a dibujar todo */
+function recargar() {
+  API.productos().then(function (p) {
+    PRODUCTOS = p;
+    pintarDatos();
+    pintarTabla();
+  });
+}
+
+
+/* ====== 4. Abrir la ventana ====== */
+
+function llenarCategorias() {
+  var html = "";
+  for (var i = 0; i < CATEGORIAS.length; i++) {
+    html += '<option value="' + CATEGORIAS[i].id + '">' + CATEGORIAS[i].nombre + '</option>';
+  }
+  document.getElementById("f-categoria").innerHTML = html;
+}
+
+function abrirNuevo() {
+  EDITANDO = 0;
+  document.getElementById("titulo-ventana").innerHTML = "Nuevo producto";
+
+  document.getElementById("f-nombre").value = "";
+  document.getElementById("f-descripcion").value = "";
+  document.getElementById("f-categoria").value = CATEGORIAS[0].id;
+  document.getElementById("f-envase").value = "botella";
+  document.getElementById("f-precio").value = "";
+  document.getElementById("f-stock").value = "";
+  document.getElementById("f-organico").value = "si";
+  document.getElementById("f-insignia").value = "";
+  document.getElementById("f-imagen").value = "";
+
+  limpiarErrores();
+  document.getElementById("ventana").className = "ventana ventana-visible";
+}
+
+function abrirEditar(id) {
+  var p = buscarProducto(PRODUCTOS, id);
+  if (p === null) {
+    return;
+  }
+
+  EDITANDO = id;
+  document.getElementById("titulo-ventana").innerHTML = "Editar producto";
+
+  document.getElementById("f-nombre").value = p.nombre;
+  document.getElementById("f-descripcion").value = p.descripcion;
+  document.getElementById("f-categoria").value = p.categoria;
+  document.getElementById("f-envase").value = p.envase;
+  document.getElementById("f-precio").value = p.precio.toFixed(2);
+  document.getElementById("f-stock").value = p.stock;
+  document.getElementById("f-organico").value = (p.organico ? "si" : "no");
+  document.getElementById("f-insignia").value = p.insignia;
+  document.getElementById("f-imagen").value = p.imagen;
+
+  limpiarErrores();
+  document.getElementById("ventana").className = "ventana ventana-visible";
+}
+
+function cerrarVentana() {
+  document.getElementById("ventana").className = "ventana";
+}
+
+
+/* ====== 5. Validar y guardar ====== */
+
+var CAMPOS = ["f-nombre", "f-descripcion", "f-categoria", "f-envase",
+              "f-precio", "f-stock", "f-organico", "f-insignia", "f-imagen"];
+
+function limpiarErrores() {
+  for (var i = 0; i < CAMPOS.length; i++) {
+    var caja = document.getElementById("caja-" + CAMPOS[i]);
+    caja.className = caja.className.replace(" campo-error", "");
+    document.getElementById("error-" + CAMPOS[i]).innerHTML = "";
+  }
+}
+
+function marcarError(id, texto) {
+  var caja = document.getElementById("caja-" + id);
+  if (caja.className.indexOf("campo-error") === -1) {
+    caja.className = caja.className + " campo-error";
+  }
+  document.getElementById("error-" + id).innerHTML = texto;
+}
+
+function guardar() {
+  limpiarErrores();
+  var bien = true;
+
+  var nombre = document.getElementById("f-nombre").value.trim();
+  if (nombre.length < 4) {
+    marcarError("f-nombre", "El nombre necesita al menos 4 letras.");
+    bien = false;
+  }
+
+  var descripcion = document.getElementById("f-descripcion").value.trim();
+  if (descripcion === "") {
+    marcarError("f-descripcion", "Escribe una descripción corta.");
+    bien = false;
+  }
+
+  var precio = parseFloat(document.getElementById("f-precio").value.replace(",", "."));
+  if (isNaN(precio) || precio <= 0) {
+    marcarError("f-precio", "El precio debe ser un número mayor que 0.");
+    bien = false;
+  }
+
+  var stock = parseInt(document.getElementById("f-stock").value, 10);
+  if (isNaN(stock) || stock < 0) {
+    marcarError("f-stock", "El stock debe ser 0 o más.");
+    bien = false;
+  }
+
+  if (bien === false) {
+    return;
+  }
+
+  // Armamos el producto con la misma forma que tiene en la base
+  var producto = {
+    id: EDITANDO,
+    categoria: parseInt(document.getElementById("f-categoria").value, 10),
+    nombre: nombre,
+    descripcion: descripcion,
+    precio: precio,
+    stock: stock,
+    organico: (document.getElementById("f-organico").value === "si"),
+    envase: document.getElementById("f-envase").value,
+    insignia: document.getElementById("f-insignia").value.trim(),
+    imagen: document.getElementById("f-imagen").value.trim()
+  };
+
+  // Si no pusieron foto, se usa la generica
+  if (producto.imagen === "") {
+    producto.imagen = "img/productos/generico.jpg";
+  }
+
+  var peticion;
+  var mensaje;
+
+  if (EDITANDO === 0) {
+    peticion = API.crear(producto);          // INSERT INTO productos
+    mensaje  = "Producto creado";
+  } else {
+    peticion = API.actualizar(producto);     // UPDATE productos
+    mensaje  = "Cambios guardados";
+  }
+
+  peticion.then(function () {
+    cerrarVentana();
+    recargar();
+    avisar(mensaje);
+  }).catch(function (e) {
+    avisar(e.message);      // aqui aparece lo que diga MySQL
+  });
+}
+
+
+/* ====== 6. Eliminar ====== */
+
+function borrar(id) {
+  var p = buscarProducto(PRODUCTOS, id);
+  if (p === null) {
+    return;
+  }
+
+  if (confirm('¿Eliminar "' + p.nombre + '"? No se puede deshacer.') === false) {
+    return;
+  }
+
+  // ----- DELETE -----
+  // Si es empleado, MySQL responde ERROR 1142 y el catch lo muestra.
+  API.eliminar(id).then(function () {
+    recargar();
+    avisar("Producto eliminado");
+  }).catch(function (e) {
+    avisar(e.message);
+  });
+}
+
+
+window.onload = async function () {
+  if (await revisarPermiso() === false) {
+    return;
+  }
+
+  salidaSuave();
+
+  API.categorias().then(function (c) {
+    CATEGORIAS = c;
+    llenarCategorias();
+    recargar();
+  });
+};
+</script>
+</body>
+</html>
