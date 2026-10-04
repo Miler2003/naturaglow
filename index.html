@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NaturaGlow - Acceso</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+<div class="acceso">
+
+  <!-- ===== Lado izquierdo: foto y marca ===== -->
+  <div class="acceso-foto">
+    <div class="acceso-velo"></div>
+
+    <div class="acceso-texto">
+      <div class="marca-grande">NaturaGlow</div>
+      <div class="marca-sub">Cosmética botánica &middot; Lima, Perú</div>
+    </div>
+
+    <div class="acceso-texto acceso-frase">
+      <span class="etiqueta">Hecho despacio, a propósito</span>
+      <h2>Lo que le pones a tu piel<br>también vuelve a la tierra.</h2>
+      <p>Fórmulas de origen vegetal, trazables hasta el productor.
+         Ingredientes que se pueden nombrar y resultados que se notan.</p>
+    </div>
+
+    <div class="acceso-texto acceso-sellos">
+      <span>100% Orgánico</span>
+      <span>Libre de crueldad</span>
+      <span>Dermatológicamente probado</span>
+    </div>
+  </div>
+
+  <!-- ===== Lado derecho: formulario ===== -->
+  <div class="acceso-forma">
+    <div class="caja-forma">
+
+      <span class="etiqueta-oscura">Bienvenida de vuelta</span>
+      <h1 id="titulo">Entra a tu cuenta</h1>
+      <p class="intro" id="subtitulo">Tu carrito y tus pedidos te esperan donde los dejaste.</p>
+
+      <div class="pestanas">
+        <button class="pestana pestana-activa" id="tab-entrar">Iniciar sesión</button>
+        <button class="pestana" id="tab-crear">Crear cuenta</button>
+      </div>
+
+      <div class="aviso" id="aviso"></div>
+
+      <!-- Formulario de entrada -->
+      <form id="forma-entrar">
+        <div class="campo">
+          <label for="e-correo">Correo electrónico</label>
+          <input type="email" id="e-correo" placeholder="tu@correo.com">
+        </div>
+        <div class="campo">
+          <label for="e-clave">Contraseña</label>
+          <input type="password" id="e-clave" placeholder="Tu contraseña">
+        </div>
+        <button type="submit" class="boton boton-verde boton-ancho">Entrar</button>
+      </form>
+
+      <!-- Formulario de registro -->
+      <form id="forma-crear" class="oculto">
+        <div class="campo-doble">
+          <div class="campo">
+            <label for="c-nombre">Nombre</label>
+            <input type="text" id="c-nombre" placeholder="Ana">
+          </div>
+          <div class="campo">
+            <label for="c-apellido">Apellido</label>
+            <input type="text" id="c-apellido" placeholder="Torres">
+          </div>
+        </div>
+        <div class="campo">
+          <label for="c-correo">Correo electrónico</label>
+          <input type="email" id="c-correo" placeholder="tu@correo.com">
+        </div>
+        <div class="campo">
+          <label for="c-clave">Contraseña</label>
+          <input type="password" id="c-clave" placeholder="Mínimo 6 caracteres">
+        </div>
+        <button type="submit" class="boton boton-verde boton-ancho">Crear mi cuenta</button>
+      </form>
+
+      <div class="pie-forma">
+        <a href="#" class="enlace-suave">¿Olvidaste tu contraseña?</a><br>
+        El personal de NaturaGlow entra con las credenciales que le asigna la
+        administración; esas cuentas no se registran desde aquí.
+      </div>
+
+    </div>
+  </div>
+
+</div>
+
+<script src="js/datos.js"></script>
+<script src="js/sesion.js"></script>
+<script>
+// ===== Cambio de pestana =====
+var tabEntrar = document.getElementById("tab-entrar");
+var tabCrear  = document.getElementById("tab-crear");
+var fEntrar   = document.getElementById("forma-entrar");
+var fCrear    = document.getElementById("forma-crear");
+var aviso     = document.getElementById("aviso");
+var titulo    = document.getElementById("titulo");
+var subtitulo = document.getElementById("subtitulo");
+
+function mostrarAviso(texto) {
+  aviso.innerHTML = texto;
+  aviso.className = "aviso aviso-visible";
+}
+
+function limpiarAviso() {
+  aviso.className = "aviso";
+}
+
+function verPestana(cual) {
+  if (cual === "entrar") {
+    tabEntrar.className = "pestana pestana-activa";
+    tabCrear.className  = "pestana";
+    fEntrar.className   = "";
+    fCrear.className    = "oculto";
+    titulo.innerHTML    = "Entra a tu cuenta";
+    subtitulo.innerHTML = "Tu carrito y tus pedidos te esperan donde los dejaste.";
+  } else {
+    tabEntrar.className = "pestana";
+    tabCrear.className  = "pestana pestana-activa";
+    fEntrar.className   = "oculto";
+    fCrear.className    = "";
+    titulo.innerHTML    = "Crea tu cuenta";
+    subtitulo.innerHTML = "Toma un minuto. Después compras en dos toques.";
+  }
+  limpiarAviso();
+}
+
+tabEntrar.onclick = function () { verPestana("entrar"); };
+tabCrear.onclick  = function () { verPestana("crear"); };
+
+// ===== Entrar =====
+fEntrar.onsubmit = async function (evento) {
+  evento.preventDefault();
+  limpiarAviso();
+
+  var boton = fEntrar.querySelector("button");
+  boton.disabled = true;
+  boton.innerHTML = "Entrando...";
+
+  var correo = document.getElementById("e-correo").value;
+  var clave  = document.getElementById("e-clave").value;
+  var r = await Sesion.entrar(correo, clave);     // viaja a la VM
+
+  boton.disabled = false;
+  boton.innerHTML = "Iniciar sesión";
+
+  if (r.ok === false) {
+    mostrarAviso(r.error);
+  } else {
+    window.location.href = Sesion.destino(r.sesion.rol);
+  }
+};
+
+// ===== Crear cuenta =====
+fCrear.onsubmit = async function (evento) {
+  evento.preventDefault();
+  limpiarAviso();
+
+  var boton = fCrear.querySelector("button");
+  boton.disabled = true;
+  boton.innerHTML = "Creando...";
+
+  var r = await Sesion.registrar({
+    nombre:   document.getElementById("c-nombre").value,
+    apellido: document.getElementById("c-apellido").value,
+    correo:   document.getElementById("c-correo").value,
+    clave:    document.getElementById("c-clave").value
+  });
+
+  boton.disabled = false;
+  boton.innerHTML = "Crear cuenta";
+
+  if (r.ok === false) {
+    mostrarAviso(r.error);
+  } else {
+    window.location.href = Sesion.destino(r.sesion.rol);
+  }
+};
+</script>
+</body>
+</html>
