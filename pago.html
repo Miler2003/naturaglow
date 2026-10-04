@@ -1,0 +1,670 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NaturaGlow - Pagar</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+<!-- ===== Encabezado ===== -->
+<div class="cabecera" id="cabecera">
+  <div class="contenedor cabecera-fila">
+    <a href="inicio.html" class="marca">NaturaGlow</a>
+    <ul class="menu">
+      <li><a href="inicio.html">Inicio</a></li>
+      <li><a href="catalogo.html">Tienda</a></li>
+      <li><a href="inicio.html#historia">Nosotras</a></li>
+    </ul>
+    <div class="menu-derecha">
+      <a href="index.html" id="cuenta">Entrar</a>
+      <a href="carrito.html">Carrito <span class="contador" id="contador">0</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Contenido ===== -->
+<div class="seccion-clara" style="min-height:70vh">
+  <div class="contenedor">
+    <div id="zona-pago"></div>
+  </div>
+</div>
+
+<!-- ===== Pantalla de "procesando el pago" ===== -->
+<div class="procesando" id="procesando">
+  <div class="rueda"></div>
+  <h3 style="font-size:28px">Procesando el pago...</h3>
+  <p style="margin-top:8px; color:#C3CCBC">Conectando con la pasarela. No cierres esta ventana.</p>
+</div>
+
+<!-- ===== Pie ===== -->
+<div class="pie">
+  <div class="contenedor">
+    <div class="pie-bajo">
+      <span>&copy; 2026 NaturaGlow &middot; Universidad Peruana de Ciencias Aplicadas</span>
+      <span>Capa de presentación &middot; Sistemas Operativos 1ASI0726</span>
+    </div>
+  </div>
+</div>
+
+<div class="brindis" id="brindis"></div>
+
+<script src="js/datos.js"></script>
+<script src="js/sesion.js"></script>
+<script src="js/tienda.js"></script>
+<script>
+var ENVIO = 12.00;
+
+
+/* ====== 1. Dibujar el formulario y el resumen ====== */
+
+function pintarPago() {
+  var lista = leerCarrito();
+  var zona  = document.getElementById("zona-pago");
+
+  // Si no hay nada en el carrito no tiene sentido pagar
+  if (lista.length === 0) {
+    var vacio = "";
+    vacio += '<div class="carrito-vacio">';
+    vacio +=   '<span class="etiqueta-oscura">Pago</span>';
+    vacio +=   '<h2>No hay nada que pagar todavía.</h2>';
+    vacio +=   '<p>Agrega productos al carrito y vuelve a esta pantalla.</p>';
+    vacio +=   '<a href="catalogo.html" class="boton boton-verde">Ir a la tienda</a>';
+    vacio += '</div>';
+    zona.innerHTML = vacio;
+    return;
+  }
+
+  var html = "";
+  html += '<div style="padding-top:50px">';
+  html +=   '<span class="etiqueta-oscura">Último paso</span>';
+  html +=   '<h2 style="font-size:44px">Finalizar la compra</h2>';
+  html += '</div>';
+
+  html += '<div class="pago-fila">';
+
+  /* ---- Columna izquierda: los dos pasos del formulario ---- */
+  html +=   '<div>';
+
+  // Paso 1: datos de envio
+  html +=     '<div class="paso">';
+  html +=       '<div class="paso-titulo"><span class="paso-numero">1</span><h3>Datos de envío</h3></div>';
+  html +=       '<div class="campos">';
+  html +=         campo("nombre",    "Nombre y apellido", "text", "Ana Quispe", true);
+  html +=         campo("correo",    "Correo",            "text", "ana@correo.com", false);
+  html +=         campo("direccion", "Dirección",         "text", "Av. Primavera 123", true);
+  html +=         campo("distrito",  "Distrito",          "text", "Surco", false);
+  html +=         campo("telefono",  "Teléfono",          "text", "987 654 321", false);
+  html +=       '</div>';
+  html +=     '</div>';
+
+  // Paso 2: como quiere pagar
+  html +=     '<div class="paso" style="border-bottom:none">';
+  html +=       '<div class="paso-titulo"><span class="paso-numero">2</span><h3>¿Cómo quieres pagar?</h3></div>';
+
+  html +=       '<div class="metodos">';
+  html +=         botonMetodo("tarjeta", "TC", "Tarjeta",  "Visa o Mastercard");
+  html +=         botonMetodo("yape",    "Y",  "Yape",     "Escanea y confirma");
+  html +=         botonMetodo("plin",    "P",  "Plin",     "Escanea y confirma");
+  html +=       '</div>';
+
+  // Aqui se dibuja el formulario del metodo elegido
+  html +=       '<div id="panel-metodo"></div>';
+
+  html +=     '</div>';
+
+  html +=   '</div>';
+
+  /* ---- Columna derecha: el resumen del pedido ---- */
+  var subtotal = totalSoles();
+  var total    = subtotal + ENVIO;
+
+  html +=   '<div class="resumen">';
+  html +=     '<h3>Tu pedido</h3>';
+
+  for (var i = 0; i < lista.length; i++) {
+    html +=   '<div class="resumen-mini">';
+    html +=     '<div class="resumen-mini-img">' + htmlImagen(lista[i]) + '</div>';
+    html +=     '<div class="resumen-mini-texto">' + lista[i].nombre;
+    html +=       '<span>' + lista[i].cantidad + ' x S/ ' + lista[i].precio.toFixed(2) + '</span>';
+    html +=     '</div>';
+    html +=     '<div>S/ ' + (lista[i].precio * lista[i].cantidad).toFixed(2) + '</div>';
+    html +=   '</div>';
+  }
+
+  html +=     '<div class="resumen-linea" style="margin-top:18px"><span>Subtotal</span><span>S/ ' + subtotal.toFixed(2) + '</span></div>';
+  html +=     '<div class="resumen-linea"><span>Envío a Lima</span><span>S/ ' + ENVIO.toFixed(2) + '</span></div>';
+  html +=     '<div class="resumen-total"><span>Total</span><span>S/ ' + total.toFixed(2) + '</span></div>';
+  html +=     '<button class="boton boton-verde boton-ancho" onclick="pagar()">Pagar S/ ' + total.toFixed(2) + '</button>';
+  html +=     '<a href="carrito.html" class="boton boton-ancho" style="margin-top:10px; color:#3A4A34">Volver al carrito</a>';
+  html +=   '</div>';
+
+  html += '</div>';
+
+  zona.innerHTML = html;
+  pintarMetodo();        // dibuja el formulario del metodo activo
+}
+
+/* Arma un campo del formulario. Asi no repetimos el mismo HTML 9 veces. */
+function campo(id, etiqueta, tipo, ejemplo, ancho) {
+  var clase = "campo";
+  if (ancho === true) {
+    clase = "campo campo-ancho";
+  }
+  var h = "";
+  h += '<div class="' + clase + '" id="caja-' + id + '">';
+  h +=   '<label for="' + id + '">' + etiqueta + '</label>';
+  h +=   '<input type="' + tipo + '" id="' + id + '" placeholder="' + ejemplo + '">';
+  h +=   '<span class="mensaje-error" id="error-' + id + '"></span>';
+  h += '</div>';
+  return h;
+}
+
+
+/* ====== 1b. Los tres metodos de pago ====== */
+
+var METODO = "tarjeta";
+
+function botonMetodo(clave, icono, nombre, pie) {
+  var clase = "metodo";
+  if (clave === METODO) {
+    clase = "metodo metodo-activo";
+  }
+  var h = "";
+  h += '<div class="' + clase + '" onclick="elegirMetodo(\'' + clave + '\')">';
+  h +=   '<span class="metodo-icono">' + icono + '</span>';
+  h +=   '<span class="metodo-nombre">' + nombre + '</span>';
+  h +=   '<span class="metodo-pie">' + pie + '</span>';
+  h += '</div>';
+  return h;
+}
+
+function elegirMetodo(clave) {
+  METODO = clave;
+  PAGADO = false;          // al cambiar de metodo, vuelve a empezar
+
+  // repintar los tres botones
+  var botones = document.getElementsByClassName("metodos")[0];
+  var h = "";
+  h += botonMetodo("tarjeta", "TC", "Tarjeta",  "Visa o Mastercard");
+  h += botonMetodo("yape",    "Y",  "Yape",     "Escanea y confirma");
+  h += botonMetodo("plin",    "P",  "Plin",     "Escanea y confirma");
+  botones.innerHTML = h;
+
+  pintarMetodo();
+}
+
+/* Dibuja el formulario que corresponde al metodo elegido */
+function pintarMetodo() {
+  var caja = document.getElementById("panel-metodo");
+
+  if (METODO === "tarjeta") {
+    caja.innerHTML = htmlTarjetaForm();
+
+    // enganchar lo que se escribe para ir llenando la tarjeta dibujada
+    document.getElementById("numero").onkeyup  = alEscribirNumero;
+    document.getElementById("titular").onkeyup = alEscribirTitular;
+    document.getElementById("vence").onkeyup   = alEscribirVence;
+    return;
+  }
+
+  // Yape y Plin comparten pantalla; solo cambia el nombre
+  var nombre = "Yape";
+  if (METODO === "plin") {
+    nombre = "Plin";
+  }
+  caja.innerHTML = htmlBilletera(nombre);
+}
+
+/* ----- Formulario de tarjeta ----- */
+function htmlTarjetaForm() {
+  var h = "";
+
+  // La tarjeta dibujada, que se va llenando mientras se escribe
+  h += '<div class="tarjeta-visual">';
+  h +=   '<div class="tarjeta-chip"></div>';
+  h +=   '<div class="tarjeta-numero" id="vista-numero">•••• •••• •••• ••••</div>';
+  h +=   '<div class="tarjeta-pie">';
+  h +=     '<div>Titular<strong id="vista-titular">NOMBRE APELLIDO</strong></div>';
+  h +=     '<div>Vence<strong id="vista-vence">MM/AA</strong></div>';
+  h +=   '</div>';
+  h += '</div>';
+
+  h += '<div class="campos">';
+  h +=   campo("titular", "Nombre en la tarjeta", "text", "ANA QUISPE", true);
+  h +=   campo("numero",  "Número de tarjeta",    "text", "4111 1111 1111 1111", true);
+  h +=   campo("vence",   "Vencimiento (MM/AA)",  "text", "09/29", false);
+  h +=   campo("cvv",     "CVV",                  "text", "123", false);
+  h += '</div>';
+
+  h += '<p style="margin-top:12px; color:#6B7A64; font-size:12px">';
+  h +=   'Tarjeta de prueba: 4111 1111 1111 1111';
+  h += '</p>';
+  return h;
+}
+
+/* ----- Pantalla de Yape / Plin ----- */
+
+var PAGADO = false;        // se pone en true cuando confirma que ya pago
+
+function htmlBilletera(nombre) {
+  var total = totalSoles() + ENVIO;
+
+  // La imagen del QR: una por aplicacion
+  var archivo = "img/qr-yape.jpg";
+  if (METODO === "plin") {
+    archivo = "img/qr-plin.jpg";
+  }
+
+  var h = "";
+  h += '<div class="billetera">';
+  h +=   '<div class="qr">';
+  h +=     '<img src="' + archivo + '" alt="Código QR de ' + nombre + '" class="foto">';
+  h +=   '</div>';
+  h +=   '<div class="billetera-datos">';
+  h +=     '<h4>Paga con ' + nombre + '</h4>';
+  h +=     '<p>Abre tu aplicación, escanea el código<br>o busca el número:</p>';
+  h +=     '<div class="billetera-numero">941 252 892</div>';
+  h +=     '<div class="billetera-monto">Monto a pagar: <strong>S/ ' + total.toFixed(2) + '</strong></div>';
+  h +=   '</div>';
+  h += '</div>';
+
+  // Debajo: el boton para confirmar que ya pago
+  h += '<div id="zona-confirmo">' + htmlConfirmo() + '</div>';
+  return h;
+}
+
+/* Cambia segun si ya confirmo el pago o no */
+function htmlConfirmo() {
+  if (PAGADO === true) {
+    var h = "";
+    h += '<div class="confirmo confirmo-listo" id="caja-pagado">';
+    h +=   '<span class="confirmo-palomita">&#10003;</span>';
+    h +=   '<div>';
+    h +=     '<strong>Pago realizado</strong>';
+    h +=     '<span>Ya puedes finalizar tu pedido con el botón de la derecha.</span>';
+    h +=   '</div>';
+    h +=   '<button class="boton-mini" onclick="deshacerPago()">Deshacer</button>';
+    h += '</div>';
+    return h;
+  }
+
+  var h = "";
+  h += '<div class="confirmo" id="caja-pagado">';
+  h +=   '<div>';
+  h +=     '<strong>¿Ya hiciste el pago?</strong>';
+  h +=     '<span>Cuando tu aplicación muestre la constancia, confírmalo aquí.</span>';
+  h +=   '</div>';
+  h +=   '<button class="boton boton-verde" onclick="marcarPagado()">Sí, ya pagué</button>';
+  h += '</div>';
+  h += '<span class="mensaje-error" id="error-pagado"></span>';
+  return h;
+}
+
+function marcarPagado() {
+  PAGADO = true;
+  document.getElementById("zona-confirmo").innerHTML = htmlConfirmo();
+  avisar("Pago confirmado");
+}
+
+function deshacerPago() {
+  PAGADO = false;
+  document.getElementById("zona-confirmo").innerHTML = htmlConfirmo();
+}
+
+
+/* ====== 2. Dar formato mientras se escribe ====== */
+
+// 4111111111111111  ->  4111 1111 1111 1111
+function alEscribirNumero() {
+  var caja  = document.getElementById("numero");
+  var solo  = caja.value.replace(/[^0-9]/g, "");
+  if (solo.length > 16) {
+    solo = solo.substring(0, 16);
+  }
+
+  var conEspacios = "";
+  for (var i = 0; i < solo.length; i++) {
+    if (i > 0 && i % 4 === 0) {
+      conEspacios = conEspacios + " ";
+    }
+    conEspacios = conEspacios + solo.charAt(i);
+  }
+  caja.value = conEspacios;
+
+  // Completar con puntitos lo que falta en la tarjeta dibujada
+  var vista = conEspacios;
+  while (vista.replace(/ /g, "").length < 16) {
+    vista = vista + "•";
+    if (vista.replace(/ /g, "").length % 4 === 0 && vista.replace(/ /g, "").length < 16) {
+      vista = vista + " ";
+    }
+  }
+  document.getElementById("vista-numero").innerHTML = vista;
+}
+
+function alEscribirTitular() {
+  var valor = document.getElementById("titular").value.toUpperCase();
+  if (valor === "") {
+    valor = "NOMBRE APELLIDO";
+  }
+  document.getElementById("vista-titular").innerHTML = valor;
+}
+
+// 0929 -> 09/29
+function alEscribirVence() {
+  var caja = document.getElementById("vence");
+  var solo = caja.value.replace(/[^0-9]/g, "");
+  if (solo.length > 4) {
+    solo = solo.substring(0, 4);
+  }
+  if (solo.length > 2) {
+    caja.value = solo.substring(0, 2) + "/" + solo.substring(2);
+  } else {
+    caja.value = solo;
+  }
+  var vista = caja.value;
+  if (vista === "") {
+    vista = "MM/AA";
+  }
+  document.getElementById("vista-vence").innerHTML = vista;
+}
+
+
+/* ====== 3. Validar antes de cobrar ====== */
+
+function marcarError(id, texto) {
+  var caja = document.getElementById("caja-" + id);
+  if (caja.className.indexOf("campo-error") === -1) {
+    caja.className = caja.className + " campo-error";
+  }
+  document.getElementById("error-" + id).innerHTML = texto;
+}
+
+function limpiarErrores() {
+  var ids = ["nombre", "correo", "direccion", "distrito", "telefono",
+             "titular", "numero", "vence", "cvv"];
+
+  for (var i = 0; i < ids.length; i++) {
+    var caja = document.getElementById("caja-" + ids[i]);
+    if (caja === null) {
+      continue;          // ese campo no esta en pantalla ahora mismo
+    }
+    caja.className = caja.className.replace(" campo-error", "");
+    document.getElementById("error-" + ids[i]).innerHTML = "";
+  }
+
+  // el recuadro de "ya pague" tiene su propio aviso
+  var aviso = document.getElementById("error-pagado");
+  if (aviso !== null) {
+    aviso.innerHTML = "";
+    aviso.className = "mensaje-error";
+    document.getElementById("caja-pagado").className = "confirmo";
+  }
+}
+
+/* Lee un campo aunque no exista en pantalla */
+function valor(id) {
+  var caja = document.getElementById(id);
+  if (caja === null) {
+    return "";
+  }
+  return caja.value;
+}
+
+
+/* --- Paso 1: siempre se validan los datos de envio --- */
+function validarEnvio() {
+  var bien = true;
+
+  if (valor("nombre").trim().length < 3) {
+    marcarError("nombre", "Escribe tu nombre completo.");
+    bien = false;
+  }
+
+  var correo = valor("correo").trim();
+  if (correo.indexOf("@") === -1 || correo.indexOf(".") === -1) {
+    marcarError("correo", "El correo no parece válido.");
+    bien = false;
+  }
+
+  if (valor("direccion").trim().length < 5) {
+    marcarError("direccion", "Falta la dirección de entrega.");
+    bien = false;
+  }
+
+  if (valor("distrito").trim() === "") {
+    marcarError("distrito", "Indica el distrito.");
+    bien = false;
+  }
+
+  if (valor("telefono").replace(/[^0-9]/g, "").length !== 9) {
+    marcarError("telefono", "El teléfono debe tener 9 dígitos.");
+    bien = false;
+  }
+
+  return bien;
+}
+
+
+/* --- Paso 2a: si eligio tarjeta --- */
+function validarTarjeta() {
+  var bien = true;
+
+  if (valor("titular").trim().length < 3) {
+    marcarError("titular", "Escribe el nombre que aparece en la tarjeta.");
+    bien = false;
+  }
+
+  var numero = valor("numero").replace(/ /g, "");
+  if (numero.length !== 16) {
+    marcarError("numero", "La tarjeta debe tener 16 dígitos.");
+    bien = false;
+  } else if (luhn(numero) === false) {
+    marcarError("numero", "Ese número de tarjeta no es válido.");
+    bien = false;
+  }
+
+  if (venceValido(valor("vence")) === false) {
+    marcarError("vence", "Usa MM/AA y que no esté vencida.");
+    bien = false;
+  }
+
+  if (valor("cvv").replace(/[^0-9]/g, "").length !== 3) {
+    marcarError("cvv", "El CVV son 3 dígitos.");
+    bien = false;
+  }
+
+  return bien;
+}
+
+
+/* --- Paso 2b: si eligio Yape o Plin --- */
+function validarBilletera() {
+  if (PAGADO === true) {
+    return true;
+  }
+
+  // Marcamos en rojo el recuadro de la confirmacion
+  var caja = document.getElementById("caja-pagado");
+  if (caja !== null) {
+    caja.className = "confirmo confirmo-falta";
+  }
+  var aviso = document.getElementById("error-pagado");
+  if (aviso !== null) {
+    aviso.innerHTML = "Confirma primero que ya realizaste el pago.";
+    aviso.className = "mensaje-error mensaje-error-visible";
+  }
+
+  return false;
+}
+
+
+/* Junta las dos partes segun el metodo elegido */
+function validar() {
+  limpiarErrores();
+
+  var bien = validarEnvio();
+
+  if (METODO === "tarjeta") {
+    if (validarTarjeta() === false) {
+      bien = false;
+    }
+  } else {
+    if (validarBilletera() === false) {
+      bien = false;
+    }
+  }
+
+  return bien;
+}
+
+/* Algoritmo de Luhn: el mismo que usan los bancos para saber si un
+   numero de tarjeta esta bien escrito. Se suman los digitos, doblando
+   uno si y uno no de derecha a izquierda; el total debe ser multiplo de 10. */
+function luhn(numero) {
+  var suma = 0;
+  var doblar = false;
+
+  for (var i = numero.length - 1; i >= 0; i--) {
+    var d = parseInt(numero.charAt(i), 10);
+
+    if (doblar === true) {
+      d = d * 2;
+      if (d > 9) {
+        d = d - 9;
+      }
+    }
+
+    suma = suma + d;
+    doblar = !doblar;
+  }
+
+  return (suma % 10) === 0;
+}
+
+function venceValido(texto) {
+  if (texto.length !== 5) {
+    return false;
+  }
+  var mes = parseInt(texto.substring(0, 2), 10);
+  var anio = parseInt(texto.substring(3, 5), 10);
+
+  if (mes < 1 || mes > 12) {
+    return false;
+  }
+
+  var hoy = new Date();
+  var anioHoy = hoy.getFullYear() - 2000;
+  var mesHoy = hoy.getMonth() + 1;
+
+  if (anio < anioHoy) {
+    return false;
+  }
+  if (anio === anioHoy && mes < mesHoy) {
+    return false;
+  }
+  return true;
+}
+
+
+/* ====== 4. Cobrar (simulado) ====== */
+
+function pagar() {
+  if (validar() === false) {
+    avisar("Revisa los datos marcados en rojo");
+    return;
+  }
+
+  // Mostramos la pantalla de "procesando" durante 2 segundos
+  document.getElementById("procesando").className = "procesando procesando-visible";
+
+  setTimeout(function () {
+    document.getElementById("procesando").className = "procesando";
+    confirmar();
+  }, 2000);
+}
+
+function confirmar() {
+  var total  = totalSoles() + ENVIO;
+  var pedido = numeroDePedido();
+  var correo = valor("correo").trim();
+
+  // El texto cambia segun como pago
+  var comoPago = "";
+  if (METODO === "tarjeta") {
+    var cuatro = valor("numero").replace(/ /g, "").substring(12, 16);
+    comoPago = "a la tarjeta terminada en " + cuatro;
+  } else if (METODO === "yape") {
+    comoPago = "con Yape al 941 252 892";
+  } else {
+    comoPago = "con Plin al 941 252 892";
+  }
+
+  // El pedido se guarda para poder consultarlo despues
+  guardarPedido(pedido, total, METODO);
+
+  // El carrito se vacia porque la compra ya se hizo
+  localStorage.removeItem("ng_carrito");
+  pintarContador();
+
+  var html = "";
+  html += '<div class="confirmado">';
+  html +=   '<div class="palomita">&#10003;</div>';
+  html +=   '<span class="etiqueta-oscura">Pago aprobado</span>';
+  html +=   '<h2 style="font-size:44px; margin:10px 0 14px 0">Gracias por tu compra.</h2>';
+  html +=   '<p style="color:#4A5844; line-height:1.8">Cobramos S/ ' + total.toFixed(2) + ' ' + comoPago + '. ';
+  html +=     'Enviamos la boleta a ' + correo + '.</p>';
+  html +=   '<div class="numero-pedido">Pedido ' + pedido + '</div>';
+  html +=   '<p style="color:#6B7A64; font-size:13px; margin-bottom:26px">Llega en 2 a 4 días hábiles.</p>';
+  html +=   '<a href="catalogo.html" class="boton boton-verde">Seguir comprando</a>';
+  html += '</div>';
+
+  document.getElementById("zona-pago").innerHTML = html;
+  window.scrollTo(0, 0);
+}
+
+/* NG-2026-0007 */
+function numeroDePedido() {
+  var pedidos = leerPedidos();
+  var siguiente = pedidos.length + 1;
+  var relleno = "" + siguiente;
+  while (relleno.length < 4) {
+    relleno = "0" + relleno;
+  }
+  return "NG-" + new Date().getFullYear() + "-" + relleno;
+}
+
+function leerPedidos() {
+  var texto = localStorage.getItem("ng_pedidos");
+  if (texto === null) {
+    return [];
+  }
+  return JSON.parse(texto);
+}
+
+function guardarPedido(codigo, total, metodo) {
+  var pedidos = leerPedidos();
+  pedidos.push({
+    codigo: codigo,
+    total: total,
+    metodo: metodo,
+    fecha: new Date().toISOString(),
+    lineas: leerCarrito()
+  });
+  localStorage.setItem("ng_pedidos", JSON.stringify(pedidos));
+}
+
+
+window.onload = function () {
+  pintarContador();
+  salidaSuave();
+  pintarSesion();
+  vigilarCabecera();
+  pintarPago();
+};
+</script>
+</body>
+</html>
