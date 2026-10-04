@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NaturaGlow - Tienda</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+<!-- ===== Encabezado ===== -->
+<div class="cabecera" id="cabecera">
+  <div class="contenedor cabecera-fila">
+    <a href="inicio.html" class="marca">NaturaGlow</a>
+    <ul class="menu">
+      <li><a href="inicio.html">Inicio</a></li>
+      <li><a href="catalogo.html" class="activo">Tienda</a></li>
+      <li><a href="inicio.html#historia">Nosotras</a></li>
+    </ul>
+    <div class="menu-derecha">
+      <a href="index.html" id="cuenta">Entrar</a>
+      <a href="carrito.html">Carrito <span class="contador" id="contador">0</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Contenido ===== -->
+<div class="seccion seccion-clara">
+  <div class="contenedor">
+
+    <span class="etiqueta-oscura">La colección completa</span>
+    <h2 style="font-size:46px; margin-bottom:34px;">Diez productos,<br>ni uno de relleno.</h2>
+
+    <!-- Filtros por categoria -->
+    <div class="barra-filtros">
+      <!-- Los botones se dibujan solos con las categorias que venga de la base -->
+      <span id="filtros"></span>
+
+      <div class="orden">
+        <select id="orden" onchange="pintarLista()">
+          <option value="nombre">Ordenar: A - Z</option>
+          <option value="barato">Precio: menor a mayor</option>
+          <option value="caro">Precio: mayor a menor</option>
+        </select>
+      </div>
+
+      <div class="resultado-conteo" id="conteo"></div>
+    </div>
+
+    <!-- Aqui se dibujan los productos -->
+    <div class="rejilla" id="rejilla"></div>
+
+  </div>
+</div>
+
+<!-- ===== Pie ===== -->
+<div class="pie">
+  <div class="contenedor">
+    <div class="pie-bajo">
+      <span>&copy; 2026 NaturaGlow &middot; Universidad Peruana de Ciencias Aplicadas</span>
+      <span>Capa de presentación &middot; Sistemas Operativos 1ASI0726</span>
+    </div>
+  </div>
+</div>
+
+<div class="brindis" id="brindis"></div>
+
+<script src="js/datos.js"></script>
+<script src="js/sesion.js"></script>
+<script src="js/tienda.js"></script>
+<script>
+var categoriaActiva = 0;   // 0 = todas
+
+// Dibuja un boton por cada categoria que mando el servidor
+function pintarFiltros() {
+  var html = '<button class="filtro filtro-activo" onclick="filtrar(0, this)">Todos</button>';
+
+  for (var i = 0; i < CATEGORIAS.length; i++) {
+    html += '<button class="filtro" onclick="filtrar(' + CATEGORIAS[i].id + ', this)">'
+          + CATEGORIAS[i].nombre + '</button>';
+  }
+
+  document.getElementById("filtros").innerHTML = html;
+}
+
+// Cambia el filtro y vuelve a dibujar
+function filtrar(idCategoria, boton) {
+  categoriaActiva = idCategoria;
+
+  var botones = document.getElementsByClassName("filtro");
+  for (var i = 0; i < botones.length; i++) {
+    botones[i].className = "filtro";
+  }
+  boton.className = "filtro filtro-activo";
+
+  pintarLista();
+}
+
+// Dibuja los productos segun el filtro y el orden elegidos
+function pintarLista() {
+  var lista = [];
+
+  for (var i = 0; i < PRODUCTOS.length; i++) {
+    if (categoriaActiva === 0 || PRODUCTOS[i].categoria === categoriaActiva) {
+      lista.push(PRODUCTOS[i]);
+    }
+  }
+
+  var orden = document.getElementById("orden").value;
+
+  if (orden === "barato") {
+    lista.sort(function (a, b) { return a.precio - b.precio; });
+  } else if (orden === "caro") {
+    lista.sort(function (a, b) { return b.precio - a.precio; });
+  } else {
+    lista.sort(function (a, b) { return a.nombre.localeCompare(b.nombre); });
+  }
+
+  var html = "";
+  for (var j = 0; j < lista.length; j++) {
+    html = html + htmlTarjeta(lista[j], CATEGORIAS);
+  }
+
+  document.getElementById("rejilla").innerHTML = html;
+  document.getElementById("conteo").innerHTML = lista.length + " productos";
+}
+
+// Al abrir la pagina: pedir los datos y dibujar
+window.onload = function () {
+  pintarContador();
+  salidaSuave();
+  pintarSesion();
+  vigilarCabecera();
+
+  API.productos().then(function (p) {
+    PRODUCTOS = p;
+    return API.categorias();
+  }).then(function (c) {
+    CATEGORIAS = c;
+    pintarFiltros();
+    pintarLista();
+  }).catch(function (e) {
+    document.getElementById("rejilla").innerHTML =
+      '<p style="color:#8E3C2C">' + e.message + '</p>';
+  });
+};
+</script>
+</body>
+</html>
