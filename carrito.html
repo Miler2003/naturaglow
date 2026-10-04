@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NaturaGlow - Carrito</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,400&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+
+<!-- ===== Encabezado ===== -->
+<div class="cabecera" id="cabecera">
+  <div class="contenedor cabecera-fila">
+    <a href="inicio.html" class="marca">NaturaGlow</a>
+    <ul class="menu">
+      <li><a href="inicio.html">Inicio</a></li>
+      <li><a href="catalogo.html">Tienda</a></li>
+      <li><a href="inicio.html#historia">Nosotras</a></li>
+    </ul>
+    <div class="menu-derecha">
+      <a href="index.html" id="cuenta">Entrar</a>
+      <a href="carrito.html" class="activo">Carrito <span class="contador" id="contador">0</span></a>
+    </div>
+  </div>
+</div>
+
+<!-- ===== Carrito ===== -->
+<div class="seccion-clara" style="min-height:70vh;">
+  <div class="contenedor">
+    <div id="zona-carrito"></div>
+  </div>
+</div>
+
+<!-- ===== Pie ===== -->
+<div class="pie">
+  <div class="contenedor">
+    <div class="pie-bajo">
+      <span>&copy; 2026 NaturaGlow &middot; Universidad Peruana de Ciencias Aplicadas</span>
+      <span>Capa de presentación &middot; Sistemas Operativos 1ASI0726</span>
+    </div>
+  </div>
+</div>
+
+<div class="brindis" id="brindis"></div>
+
+<script src="js/datos.js"></script>
+<script src="js/sesion.js"></script>
+<script src="js/tienda.js"></script>
+<script>
+var ENVIO = 12.00;   // costo fijo de envío en soles
+
+// Cambia la cantidad de una linea y vuelve a dibujar
+function masUno(id) {
+  var lista = leerCarrito();
+  for (var i = 0; i < lista.length; i++) {
+    if (lista[i].id === id) {
+      cambiarCantidad(id, lista[i].cantidad + 1);
+    }
+  }
+  pintarCarrito();
+}
+
+function menosUno(id) {
+  var lista = leerCarrito();
+  for (var i = 0; i < lista.length; i++) {
+    if (lista[i].id === id) {
+      cambiarCantidad(id, lista[i].cantidad - 1);
+    }
+  }
+  pintarCarrito();
+}
+
+function quitar(id) {
+  quitarDelCarrito(id);
+  avisar("Producto retirado del carrito");
+  pintarCarrito();
+}
+
+// Dibuja todo el carrito
+function pintarCarrito() {
+  var lista = leerCarrito();
+  var zona = document.getElementById("zona-carrito");
+
+  // --- Carrito vacio ---
+  if (lista.length === 0) {
+    var vacio = "";
+    vacio += '<div class="carrito-vacio">';
+    vacio +=   '<span class="etiqueta-oscura">Tu carrito</span>';
+    vacio +=   '<h2>Todavía no has elegido nada.</h2>';
+    vacio +=   '<p>Diez productos te esperan en la tienda.</p>';
+    vacio +=   '<a href="catalogo.html" class="boton boton-verde">Ver la colección</a>';
+    vacio += '</div>';
+    zona.innerHTML = vacio;
+    return;
+  }
+
+  // --- Carrito con productos ---
+  var html = "";
+  html += '<div style="padding-top:50px">';
+  html +=   '<span class="etiqueta-oscura">Tu carrito</span>';
+  html +=   '<h2 style="font-size:44px">' + totalUnidades() + ' artículos</h2>';
+  html += '</div>';
+
+  html += '<div class="carrito-fila">';
+
+  // Columna izquierda: las lineas
+  html +=   '<div class="carrito-lista">';
+  for (var i = 0; i < lista.length; i++) {
+    var linea = lista[i];
+    var subtotal = linea.precio * linea.cantidad;
+
+    html += '<div class="carrito-linea">';
+    html +=   '<div class="carrito-miniatura">' + htmlImagen(linea) + '</div>';
+    html +=   '<div class="carrito-info">';
+    html +=     '<h3>' + linea.nombre + '</h3>';
+    html +=     '<p>S/ ' + linea.precio.toFixed(2) + ' por unidad</p>';
+    html +=     '<button class="carrito-quitar" onclick="quitar(' + linea.id + ')">Quitar</button>';
+    html +=   '</div>';
+    html +=   '<div class="cantidad" style="margin:0">';
+    html +=     '<button onclick="menosUno(' + linea.id + ')">-</button>';
+    html +=     '<input type="text" value="' + linea.cantidad + '" readonly>';
+    html +=     '<button onclick="masUno(' + linea.id + ')">+</button>';
+    html +=   '</div>';
+    html +=   '<div class="carrito-subtotal">S/ ' + subtotal.toFixed(2) + '</div>';
+    html += '</div>';
+  }
+  html +=   '</div>';
+
+  // Columna derecha: el resumen
+  var subtotal = totalSoles();
+  var total = subtotal + ENVIO;
+
+  html +=   '<div class="resumen">';
+  html +=     '<h3>Resumen</h3>';
+  html +=     '<div class="resumen-linea"><span>Subtotal</span><span>S/ ' + subtotal.toFixed(2) + '</span></div>';
+  html +=     '<div class="resumen-linea"><span>Envío a Lima</span><span>S/ ' + ENVIO.toFixed(2) + '</span></div>';
+  html +=     '<div class="resumen-linea"><span>IGV incluido</span><span>-</span></div>';
+  html +=     '<div class="resumen-total"><span>Total</span><span>S/ ' + total.toFixed(2) + '</span></div>';
+  html +=     '<a href="pago.html" class="boton boton-verde boton-ancho">Ir a pagar</a>';
+  html +=     '<a href="catalogo.html" class="boton boton-ancho" style="margin-top:10px; color:#3A4A34">Seguir comprando</a>';
+  html +=   '</div>';
+
+  html += '</div>';
+
+  zona.innerHTML = html;
+}
+
+window.onload = function () {
+  pintarContador();
+  salidaSuave();
+  pintarSesion();
+  vigilarCabecera();
+  pintarCarrito();
+};
+</script>
+</body>
+</html>
