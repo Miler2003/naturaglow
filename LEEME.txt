@@ -1,0 +1,229 @@
+===============================================================================
+ NATURAGLOW - CAPA DE PRESENTACION
+ Muestra 1: acceso (login) + portada
+ Curso 1ASI0726 Sistemas Operativos - Grupo 6
+===============================================================================
+
+ COMO ABRIRLO
+ ------------
+ Doble clic en  index.html
+ (o arrastrarlo al navegador)
+
+ No necesita servidor ni VM. Las fuentes se bajan de Google Fonts, asi que
+ con internet se ve tal cual; sin internet cambia la tipografia pero todo
+ lo demas funciona igual.
+
+
+ ESTRUCTURA
+ ----------
+ naturaglow/
+   index.html        Acceso: iniciar sesion y crear cuenta
+   inicio.html       Portada de la tienda
+   catalogo.html     Tienda completa con filtros y orden
+   producto.html     Ficha de un producto  (producto.html?id=2)
+   carrito.html      Carrito con cantidades y resumen
+   pago.html         Pasarela de pago simulada y confirmacion
+   panel.html        Panel del personal: CRUD de productos
+   css/
+     estilos.css     Toda la hoja de estilos
+   js/
+     datos.js        CAPA DE DATOS. Productos y el punto de conexion con PHP
+     sesion.js       Login, roles y cuentas
+     tienda.js       Carrito, tarjetas, barra al desplazar
+   img/
+     acceso.jpg      Foto de fondo del login
+     heroe.jpg       Foto grande de la portada
+     historia.jpg    Foto de la seccion "Sobre NaturaGlow"
+     productos/
+       1.jpg .. 10.jpg   Una foto por producto (el numero = el id)
+       generico.jpg      Se usa si falta alguna de las anteriores
+
+
+ CREDENCIALES
+ ------------
+ Personal (no se registran, ya existen):
+
+   admin@naturaglow.pe      admin2026       -> rol admin
+   empleado@naturaglow.pe   empleado2026    -> rol empleado
+
+ Estas dos cuentas NO aparecen escritas en la pantalla de acceso (se
+ quitaron por seguridad): hay que escribirlas a mano.
+
+ Clienta: se crea con la pestana "Crear cuenta". Queda guardada en el
+ navegador y sirve para volver a entrar las veces que quiera.
+
+
+ COMO FUNCIONAN LOS ROLES
+ ------------------------
+ Al entrar, sesion.js decide a donde va cada quien:
+
+   admin / empleado  ->  panel.html    (gestion de productos)
+   cliente           ->  inicio.html   (la portada)
+
+ Eso esta en la funcion Sesion.destino(). Ademas, panel.html revisa la
+ sesion al abrirse: si entra alguien que no es personal, lo devuelve al
+ login. Y dentro del panel los dos roles NO son iguales:
+
+   admin     puede crear, editar y ELIMINAR productos
+   empleado  puede crear y editar; el boton Eliminar le sale desactivado
+
+
+ LO QUE YA FUNCIONA
+ ------------------
+ - Acceso con dos pestanas (entrar / crear cuenta) y validaciones
+ - Deteccion de rol y redireccion segun quien entra
+ - Cuentas de clienta guardadas en el navegador
+ - Portada completa: heroe, destacados, historia, pie
+ - Catalogo con filtro por categoria y orden por nombre o precio
+ - Ficha de producto con selector de cantidad y relacionados
+ - Carrito: sumar, restar, quitar, subtotales, envio y total
+ - El contador del encabezado sobrevive al recargar y al cambiar de pagina
+ - La barra de arriba se encoge y le sale sombra al bajar
+ - Pago simulado: tarjeta dibujada que se llena sola, validacion del
+   numero con el algoritmo de Luhn, vencimiento, CVV y datos de envio;
+   pantalla de "procesando" y confirmacion con numero de pedido
+ - Panel del personal con el CRUD completo sobre los productos, cifras
+   del inventario y permisos distintos por rol
+ - Lo que el panel cambia se ve de inmediato en el catalogo
+ - Diseno adaptable a telefono
+
+
+ LAS FOTOS: COMO CAMBIARLAS
+ --------------------------
+ Todas las imagenes que trae el proyecto son PROVISIONALES: dicen "IMG"
+ y el nombre del archivo que les toca. Para poner las de verdad solo hay
+ que reemplazar el archivo con el MISMO nombre.
+
+   img/productos/1.jpg   ->  Crema facial de aloe vera
+   img/productos/2.jpg   ->  Serum de vitamina C
+   img/productos/3.jpg   ->  Shampoo de romero
+   img/productos/4.jpg   ->  Acondicionador de coco
+   img/productos/5.jpg   ->  Jabon artesanal de avena
+   img/productos/6.jpg   ->  Manteca corporal de karite
+   img/productos/7.jpg   ->  Labial mineral coral
+   img/productos/8.jpg   ->  Base liquida mineral
+   img/productos/9.jpg   ->  Aceite esencial de lavanda
+   img/productos/10.jpg  ->  Difusor de aromas ceramico
+
+   img/heroe.jpg         Foto grande de la portada (cuadrada queda mejor)
+   img/historia.jpg      Seccion "Sobre NaturaGlow" (vertical queda mejor)
+   img/acceso.jpg        Fondo del login (horizontal)
+   img/qr-yape.jpg       Tu codigo QR de Yape (cuadrado)
+   img/qr-plin.jpg       Tu codigo QR de Plin (cuadrado)
+
+ No hace falta recortarlas: el CSS usa object-fit: cover, asi que la foto
+ llena su espacio sin deformarse. Recomendado: entre 800 y 1200 px de lado
+ y menos de 300 KB cada una, para que la pagina abra rapido.
+
+ Si una foto no existe, no se rompe nada: el atributo onerror de la
+ etiqueta <img> pone automaticamente img/productos/generico.jpg.
+
+ La ruta de cada foto esta en js/datos.js, en el campo "imagen" de cada
+ producto, y tambien se puede escribir desde el panel al crear o editar.
+
+
+ COMO PROBAR EL PAGO
+ -------------------
+ Hay tres formas de pagar y cada una se valida distinto:
+
+ TARJETA
+ Numero de prueba:  4111 1111 1111 1111
+ Vencimiento: cualquiera futuro (ej. 09/29)    CVV: 3 digitos
+
+ Si pones otro numero, el formulario lo rechaza: la funcion luhn()
+ aplica el mismo algoritmo que usan los bancos para saber si un numero
+ esta bien escrito.
+
+ YAPE / PLIN
+ Sale la imagen del codigo QR, el numero 941 252 892 y el monto.
+ Debajo hay un recuadro: "Ya hiciste el pago?" con el boton
+ "Si, ya pague". Al tocarlo el recuadro se pone verde y dice
+ "Pago realizado"; recien ahi el boton Pagar deja terminar el pedido.
+ Si se intenta pagar sin confirmar, el recuadro se pone rojo.
+
+ Los QR son provisionales (dicen "pega aqui tu codigo QR"): reemplaza
+ img/qr-yape.jpg y img/qr-plin.jpg por los tuyos, cuadrados.
+
+ En los tres casos hacen falta los datos de envio completos y un
+ telefono de 9 digitos.
+
+
+ PENDIENTE (las siguientes entregas)
+ -----------------------------------
+ 1. api/*.php       Endpoints en la VM para conectar con naturaglow_db
+
+
+ NOTA SOBRE EL CODIGO
+ --------------------
+ Todo esta escrito con HTML y CSS basico a proposito: colores puestos
+ directamente (sin variables), flexbox y grid simples, y JavaScript con
+ funciones sueltas y bucles for. La idea es que cualquiera del grupo
+ pueda leerlo, explicarlo y modificarlo sin conocer nada avanzado.
+
+
+ COMO CONECTARLO A LA BASE DE DATOS REAL
+ ---------------------------------------
+ Todo el contacto con el exterior esta en js/datos.js, en el objeto API.
+ Hoy devuelve datos de muestra. Para conectar:
+
+ 1. En la VM de aplicacion (20.104.234.86), crear la carpeta y el endpoint:
+
+      sudo mkdir -p /var/www/html/api
+      sudo nano /var/www/html/api/productos.php
+
+    Contenido:
+
+      <?php
+      require '../config.php';
+      header('Content-Type: application/json; charset=utf-8');
+      $sql = "SELECT id_producto AS id, id_categoria AS categoria, nombre,
+                     descripcion, precio, stock, es_organico AS organico
+              FROM productos";
+      $res = $conexion->query($sql);
+      $salida = [];
+      while ($f = $res->fetch_assoc()) {
+          $f['precio']   = (float)$f['precio'];
+          $f['stock']    = (int)$f['stock'];
+          $f['organico'] = ($f['organico'] === 'si');
+          $f['envase']   = 'botella';   // columna a agregar en la tabla
+          $f['insignia'] = '';
+          $salida[] = $f;
+      }
+      echo json_encode($salida, JSON_UNESCAPED_UNICODE);
+
+ 2. Lo mismo con api/categorias.php sobre la tabla categorias.
+
+ 3. En js/datos.js cambiar:
+
+      BD_ACTIVA: false     ->     BD_ACTIVA: true
+
+    Y nada mas. El resto del front no se toca.
+
+ 4. Para el panel hacen falta ademas tres endpoints de escritura, que ya
+    estan llamados en datos.js:
+
+      api/producto_crear.php        ->  INSERT INTO productos ...
+      api/producto_actualizar.php   ->  UPDATE productos SET ... WHERE id
+      api/producto_eliminar.php     ->  DELETE FROM productos WHERE id
+
+    Mientras tanto, el objeto Almacen de datos.js hace de base de datos
+    guardando la lista en el navegador. Por eso el CRUD ya funciona de
+    verdad aunque la VM no este conectada.
+
+ OJO: al abrir el HTML desde la laptop (file://) y pedir datos a otra
+ direccion, el navegador bloquea la peticion por CORS. Hay dos salidas:
+   a) subir tambien el front a /var/www/html de la VM, o
+   b) agregar en los .php:  header('Access-Control-Allow-Origin: *');
+
+
+ DECISIONES DE DISENO
+ --------------------
+ Paleta      verde profundo #1E2A1C, verde #2F4029, crema #F3EEE4,
+             salvia #A8B49A, oro #C2A878
+ Tipografia  Cormorant Garamond para titulos, Inter para texto
+ Fotos       archivos .jpg en la carpeta img/. Todas se muestran con
+             object-fit: cover para que ninguna salga estirada.
+ Movimiento  solo transiciones de CSS al pasar el mouse. Nada de librerias
+             ni de animaciones controladas por JavaScript.
+
+===============================================================================
