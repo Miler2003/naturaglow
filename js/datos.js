@@ -11,7 +11,7 @@ const API = {
 
   /* true  = todo sale de MySQL a traves de los .php
      false = datos de muestra guardados en el navegador (sin VM) */
-  BD_ACTIVA: false,
+  BD_ACTIVA: true,
 
 
   /* ---------- El token de la sesion ----------
